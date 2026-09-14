@@ -1,271 +1,223 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050305">
-  <meta name="description" content="Uma pequena experiência feita por Haniel para Ketelin.">
-  <title>Para Ketelin ❤️</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#030303" />
+  <meta name="description" content="Uma experiência feita por Haniel para Ketelin." />
+  <title>Para Ketelin ♥</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Caveat:wght@500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="hearts-layer" aria-hidden="true"></div>
-  <div id="falling-letters" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
+  <main id="app" aria-live="polite">
+    <div class="noise" aria-hidden="true"></div>
+    <div class="ambient-glow glow-a" aria-hidden="true"></div>
+    <div class="ambient-glow glow-b" aria-hidden="true"></div>
+    <div id="particleField" class="particle-field" aria-hidden="true"></div>
 
-  <main id="app">
     <!-- 01 — ENTRADA -->
-    <section class="screen active" id="screen-intro" aria-labelledby="intro-title">
-      <div class="center-content">
-        <p class="eyebrow reveal delay-1">UMA PEQUENA EXPERIÊNCIA...</p>
-        <h1 id="intro-title" class="hero-title">
+    <section class="screen active" data-screen="intro">
+      <div id="fallingLetters" class="falling-letters" aria-hidden="true"></div>
+      <div class="screen-shell intro-shell">
+        <p class="eyebrow intro-eyebrow">Uma coisinha feita especialmente para você</p>
+        <h1 class="hero-title">
           <span>OLÁ,</span>
           <span>KETELIN</span>
         </h1>
-        <div class="heart-line reveal delay-3">♥</div>
-        <p class="narrator reveal delay-4">
-          Digite abaixo quem é o amor da vida do Haniel<br class="desktop-only">
-          para continuar...
-        </p>
+        <p class="narrator">Digite abaixo quem é o amor da vida do Haniel para continuar...</p>
 
-        <form id="answer-form" class="answer-form reveal delay-5" autocomplete="off">
-          <label class="sr-only" for="answer">Resposta</label>
+        <form id="answerForm" class="answer-form" autocomplete="off">
+          <label class="sr-only" for="answerInput">Resposta</label>
           <div class="input-wrap">
-            <input id="answer" name="answer" type="text" placeholder="Digite aqui..." spellcheck="false">
-            <span>♡</span>
+            <input id="answerInput" type="text" maxlength="80" placeholder="Digite aqui..." spellcheck="false" />
+            <span class="input-heart">♥</span>
           </div>
-          <button class="primary-btn" type="submit">CONTINUAR <b>→</b></button>
+          <button class="primary-btn" type="submit">CONTINUAR <span>→</span></button>
         </form>
-
-        <p id="answer-feedback" class="feedback" role="status" aria-live="polite"></p>
+        <p id="answerFeedback" class="answer-feedback" role="status" aria-live="polite"></p>
       </div>
+      <div class="page-number">01 / 08</div>
     </section>
 
-    <!-- 02 — ACERTO -->
-    <section class="screen" id="screen-correct">
-      <div class="center-content">
-        <div class="check-ring success-pop">✓</div>
-        <p class="eyebrow">VERIFICAÇÃO CONCLUÍDA</p>
-        <h2 class="section-title">RESPOSTA<br> CORRETA!</h2>
-        <p class="soft-text">Você realmente me conhece... ♥</p>
-        <button class="primary-btn" data-next="letter-closed">PROSSEGUIR <b>→</b></button>
+    <!-- 02 — VERIFICAÇÃO -->
+    <section class="screen" data-screen="check">
+      <div class="screen-shell center-shell">
+        <div id="checkMark" class="check-mark">♥</div>
+        <p class="eyebrow">Verificação concluída</p>
+        <h2 id="checkTitle" class="section-title">RESPOSTA CORRETA!</h2>
+        <p id="checkText" class="narrator">Você realmente me conhece... ♥</p>
+        <button id="checkContinue" class="primary-btn">PROSSEGUIR <span>→</span></button>
       </div>
+      <div class="page-number">02 / 08</div>
     </section>
 
-    <!-- 03 — CARTA FECHADA -->
-    <section class="screen" id="screen-letter-closed">
-      <div class="center-content letter-stage">
-        <p class="eyebrow">UMA COISA QUE EU QUERIA TE DIZER</p>
-        <div class="envelope-wrap" id="envelope" role="img" aria-label="Envelope fechado">
-          <div class="envelope">
+    <!-- 03 — CARTA -->
+    <section class="screen" data-screen="letter">
+      <div class="screen-shell center-shell letter-shell">
+        <div class="envelope-wrap">
+          <div id="envelope" class="envelope" aria-hidden="true">
+            <div class="envelope-back"></div>
+            <div class="envelope-paper"></div>
             <div class="envelope-flap"></div>
-            <div class="envelope-body"></div>
-            <div class="seal">♥</div>
+            <div class="envelope-front"></div>
+            <div class="wax-seal">♥</div>
           </div>
         </div>
-        <p class="soft-text">Você quer abrir a carta?</p>
-        <button class="primary-btn" id="open-letter">ABRIR CARTA ✉</button>
-        <p class="tiny-note">Feita especialmente para você.</p>
+        <p class="eyebrow">Uma coisa que eu queria te entregar</p>
+        <h2 class="section-title script-title">Uma carta para você.</h2>
+        <p class="narrator">Escrita por alguém meio apaixonado.<br />Só um pouquinho.</p>
+        <button id="openLetter" class="primary-btn">ABRIR CARTA <span>✉</span></button>
+        <button id="letterContinue" class="secondary-btn hidden">CONTINUAR <span>→</span></button>
       </div>
-    </section>
+      <div class="page-number">03 / 08</div>
 
-    <!-- 04 — CARTA ABERTA -->
-    <section class="screen" id="screen-letter-open">
-      <div class="letter-scroll">
+      <div id="letterModal" class="letter-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="letterHeading">
+        <div id="letterBackdrop" class="modal-backdrop"></div>
         <article class="love-letter">
-          <div class="letter-top">
-            <div><strong>De:</strong> Haniel</div>
-            <div><strong>Para:</strong> A Dona do Meu Coração ♥</div>
-            <div class="letter-date">Com todo o meu amor</div>
+          <button id="closeLetterTop" class="close-letter" aria-label="Fechar carta">×</button>
+          <div class="paper-corner paper-corner-tl"></div>
+          <div class="paper-corner paper-corner-br"></div>
+          <p class="letter-kicker">Uma carta guardada só para você</p>
+          <div class="letter-meta">
+            <p><strong>De:</strong> Haniel</p>
+            <p><strong>Para:</strong> A Dona do Meu Coração <span>♥</span></p>
           </div>
-
-          <div class="letter-body">
-            <p>Ketelin,</p>
-
-            <p>
-              Eu me sinto o homem mais feliz do mundo por ter você do meu lado,
-              e por ouvir um “eu te amo” com a sua voz de sono quase toda noite.
-            </p>
-
-            <p>
-              Desde o dia que ouvi sua voz eu fiquei tão apaixonado. Eu sabia
-              que tinha que investir em você kkkkk.
-            </p>
-
-            <p>
-              Mas, para mim, cada dia ao seu lado é a melhor coisa do mundo.
-              Eu não tenho palavras para descrever o quão especial você é para mim,
-              e sempre vou querer expressar meu amor por você de maneiras diferentes.
-            </p>
-
-            <p>
-              Te amar em voz alta... bem, vamos dar continuidade aí.
-              Mas nunca esqueça, viu?
-            </p>
-
-            <p class="letter-ending">EU TE AMOOOO!!!</p>
-
-            <p class="signature">Com amor,<br><strong>Haniel</strong> ♥</p>
+          <div class="letter-divider"></div>
+          <p class="letter-date">Com carinho, do jeitinho mais sincero possível.</p>
+          <h3 id="letterHeading">Minha Ketelin,</h3>
+          <div class="letter-copy">
+            <p>Eu me sinto o homem mais feliz do mundo, por ter você do meu lado, e ouvir um eu te amo, com sua voz de sono quase toda noite.</p>
+            <p>Desde o dia que ouvi sua voz eu fiquei tão apaixonado, eu sabia que tinha que investir em você kkkkk.</p>
+            <p>Mas pra mim cada dia ao seu lado, é a melhor coisa do mundo. Eu não tenho palavras pra descrever o quão especial você é pra mim, e sempre vou querer expressar meu amor por você de maneiras diferentes, te amar em voz alta.</p>
+            <p>Bem, vamos dar continuidade aí, mas nunca esqueça, viu?</p>
           </div>
-
-          <button class="secondary-btn" id="close-letter">FECHAR CARTA ×</button>
+          <p class="letter-love">EU TE AMOOOO!!!</p>
+          <p class="letter-signoff">Com todo o meu amor,<br /><span>Haniel</span></p>
+          <button id="closeLetter" class="secondary-btn">FECHAR CARTA <span>×</span></button>
         </article>
       </div>
     </section>
 
-    <!-- 05 — FOTOS -->
-    <section class="screen" id="screen-photos">
-      <div class="center-content wide">
-        <p class="eyebrow">AINDA FALTA UMA COISA...</p>
-        <h2 class="photo-title">Eu queria ter<br><span>fotos contigooo...</span></h2>
-        <p class="photo-subtitle">Muitas.</p>
-
-        <div class="photo-grid">
-          <div class="photo-frame tilt-a">♡</div>
-          <div class="photo-frame tilt-b">♡</div>
-          <div class="photo-frame tilt-c">♡</div>
-          <div class="photo-frame tilt-d">♡</div>
-          <div class="photo-frame tilt-e">♡</div>
-          <div class="photo-frame tilt-f">♡</div>
+    <!-- 04 — FOTOS -->
+    <section class="screen" data-screen="photos">
+      <div class="screen-shell photos-shell">
+        <div class="photo-copy">
+          <p class="eyebrow">Uma coisa que ainda quero muito</p>
+          <h2 class="section-title script-title">Eu queria ter<br />fotos contigooo...</h2>
+          <p class="narrator giant-note">Muitas.</p>
+          <p class="body-note">Ainda faltam algumas páginas para preencher.<br />Quem sabe a gente não resolve isso? ♥</p>
         </div>
-
-        <p class="future-note">Ainda vamos preencher esses espaços juntos...</p>
-        <button class="primary-btn" data-next="surprise">CONTINUAR <b>→</b></button>
+        <div class="photo-wall" aria-label="Molduras para futuras fotos">
+          <div class="photo-frame frame-1"><span>♥</span><small>um dia</small></div>
+          <div class="photo-frame frame-2"><span>♥</span><small>com você</small></div>
+          <div class="photo-frame frame-3"><span>♥</span><small>mais uma</small></div>
+          <div class="photo-frame frame-4"><span>♥</span><small>e mais outra</small></div>
+          <div class="photo-frame frame-5"><span>♥</span><small>nós dois</small></div>
+        </div>
+        <button class="primary-btn next-btn" data-next="surprise">CONTINUAR <span>→</span></button>
       </div>
+      <div class="page-number">04 / 08</div>
     </section>
 
-    <!-- 06 — SURPRESA -->
-    <section class="screen" id="screen-surprise">
-      <div class="center-content">
-        <p class="eyebrow">AGORA, POR FIM...</p>
-        <h2 class="surprise-title">uma<br><span>surpresinha.</span></h2>
-
-        <button class="gift-button" id="open-gift" aria-label="Abrir a surpresa">
+    <!-- 05 — SURPRESA -->
+    <section class="screen" data-screen="surprise">
+      <div class="screen-shell center-shell surprise-shell">
+        <p class="eyebrow">Agora, por fim...</p>
+        <h2 class="section-title script-title">uma surpressinha.</h2>
+        <p class="narrator">Porque aparentemente uma carta não era suficiente. kkkkk</p>
+        <button id="giftBox" class="gift-box" aria-label="Abrir a surpresa">
           <span class="gift-lid"></span>
-          <span class="gift-box"></span>
-          <span class="gift-ribbon-v"></span>
-          <span class="gift-ribbon-h"></span>
-          <span class="gift-heart">♥</span>
+          <span class="gift-body"></span>
+          <span class="gift-ribbon vertical"></span>
+          <span class="gift-ribbon horizontal"></span>
+          <span class="gift-bow"></span>
+          <span class="gift-spark spark-1">✦</span>
+          <span class="gift-spark spark-2">✧</span>
+          <span class="gift-spark spark-3">♥</span>
         </button>
-
-        <p class="soft-text">Clique e descubra 👀</p>
-        <button class="primary-btn" id="gift-trigger">ABRIR ♡</button>
+        <button id="giftButton" class="primary-btn">ABRIR? 👀</button>
+        <p class="tiny-hint">clique e descubra</p>
       </div>
+      <div class="page-number">05 / 08</div>
     </section>
 
-    <!-- 07 — CARTÕES DA SURPRESA -->
-    <section class="screen" id="screen-cards">
-      <div class="center-content wide">
-        <p class="eyebrow">ALGUMAS COISAS QUE EU QUERIA QUE VOCÊ SOUBESSE</p>
-
-        <div class="love-cards">
-          <article class="love-card">
-            <span class="card-number">01</span>
-            <div><h3>Eu escolho você.</h3><p>Entre todas as escolhas, eu escolheria você de novo.</p></div>
-            <span class="card-heart">♡</span>
-          </article>
-          <article class="love-card">
-            <span class="card-number">02</span>
-            <div><h3>Eu amo ouvir sua voz.</h3><p>Até quando ela está com aquele soninho que eu amo.</p></div>
-            <span class="card-heart">♡</span>
-          </article>
-          <article class="love-card">
-            <span class="card-number">03</span>
-            <div><h3>Eu amo nossos momentos.</h3><p>Até os mais bobos. Principalmente os mais bobos.</p></div>
-            <span class="card-heart">♡</span>
-          </article>
-          <article class="love-card">
-            <span class="card-number">04</span>
-            <div><h3>Eu quero muitos outros.</h3><p>Quero que ainda tenhamos muita história para guardar.</p></div>
-            <span class="card-heart">♡</span>
-          </article>
+    <!-- 06 — CARTÕES -->
+    <section class="screen" data-screen="surprise-open">
+      <div class="screen-shell surprise-open-shell">
+        <div class="surprise-heading">
+          <p class="eyebrow">Você chegou até aqui.</p>
+          <h2 class="section-title">Então deixa eu te contar mais algumas coisas.</h2>
         </div>
-
-        <p class="surprise-end">Essa foi a minha surpresinha.<br><strong>Mas ainda tem outra...</strong></p>
-        <button class="primary-btn" id="go-cinema">CLICA AQUI 👀</button>
+        <div class="love-cards">
+          <article class="love-card"><span>01</span><div><h3>Eu escolho você.</h3><p>Mesmo nas pequenas coisas, eu quero que você continue fazendo parte delas.</p></div></article>
+          <article class="love-card"><span>02</span><div><h3>Eu amo ouvir sua voz.</h3><p>Até quando você está com sono. Principalmente quando você está com sono. ♥</p></div></article>
+          <article class="love-card"><span>03</span><div><h3>Eu amo nossos momentos.</h3><p>Até os mais bobos. Às vezes são justamente eles que ficam na memória.</p></div></article>
+          <article class="love-card"><span>04</span><div><h3>Eu quero guardar muitos outros.</h3><p>Fotos, conversas, risadas, histórias... ainda tem muita coisa para viver.</p></div></article>
+        </div>
+        <div class="surprise-last">Essa foi a minha surpresinha.<br /><strong>Mas tenho outra...</strong></div>
+        <button id="startCredits" class="primary-btn">CLICA AQUI 👀</button>
       </div>
+      <div class="page-number">06 / 08</div>
     </section>
 
-    <!-- 08 — SUSPENSE -->
-    <section class="screen cinema-intro" id="screen-cinema">
-      <div class="center-content">
-        <p class="cinema-whisper" id="cinema-whisper">agora......</p>
-        <p class="cinema-sub" id="cinema-sub">fica até o fim.</p>
+    <!-- 07 — SUSPENSE / FIM -->
+    <section class="screen final-screen" data-screen="finale">
+      <div id="finalSuspense" class="final-suspense">
+        <p>Agora......</p>
+        <small>fica até o fim.</small>
       </div>
+      <div id="fimScreen" class="fim-screen">
+        <span>FIM</span>
+      </div>
+      <div class="page-number">07 / 08</div>
     </section>
 
-    <!-- 09 — FIM -->
-    <section class="screen final-black" id="screen-end">
-      <div class="end-word">FIM</div>
-    </section>
-
-    <!-- 10 — CRÉDITOS -->
-    <section class="screen credits-screen" id="screen-credits">
-      <div class="credits-scroll" id="credits-scroll">
+    <!-- 08 — PÓS-CRÉDITOS -->
+    <section class="screen credits-screen" data-screen="credits">
+      <div class="credits-vignette" aria-hidden="true"></div>
+      <div id="creditsRoll" class="credits-roll">
+        <div class="credits-spacer"></div>
         <div class="credits-content">
-          <div class="credit-spacer"></div>
+          <p class="credits-kicker">UMA PRODUÇÃO PARTICULAR</p>
+          <h2>A LOVE STORY</h2>
+          <p class="starring">starring</p>
+          <h3>HANIEL &amp; KETELIN</h3>
 
-          <p class="credit-kicker">A LOVE STORY</p>
-          <h2>HANIEL<br><span>&amp;</span><br>KETELIN</h2>
-
-          <p class="credit-role">Written by</p>
-          <p class="credit-name">Haniel</p>
-
-          <p class="credit-role">Directed by</p>
-          <p class="credit-name">Haniel</p>
-
-          <p class="credit-role">Produced with</p>
-          <p class="credit-name">an unreasonable amount of love</p>
-
-          <div class="credit-gap"></div>
-
-          <p class="credit-role">Special thanks to</p>
-          <p class="credit-name">Ketelin,<br>for being Ketelin. ♥</p>
-
-          <div class="credit-gap"></div>
-
-          <p class="language-title">EU TE AMO</p>
-          <div class="languages">
-            <p>Eu te amo</p>
-            <p>I love you</p>
-            <p>Te amo</p>
-            <p>Je t'aime</p>
-            <p>Ich liebe dich</p>
-            <p>Ti amo</p>
-            <p>Я тебя люблю</p>
-            <p>사랑해</p>
-            <p>愛してる</p>
-            <p>我爱你</p>
-            <p>Te quiero</p>
-            <p>Eu te amo</p>
+          <div class="credits-grid">
+            <div><span>Written by</span><strong>Haniel</strong></div>
+            <div><span>Directed by</span><strong>Haniel</strong></div>
+            <div><span>Produced with</span><strong>an unreasonable amount of love</strong></div>
           </div>
 
-          <p class="language-closing">...e em qualquer idioma que exista:</p>
-          <p class="final-love">eu ainda<br>escolheria você.</p>
+          <div class="credit-divider">♥</div>
+          <p class="special-label">Special thanks to:</p>
+          <p class="special-thanks">Ketelin, por ser Ketelin. ♥</p>
 
+          <p class="languages-heading">Eu te amo</p>
+          <div id="languages" class="languages"></div>
+
+          <p class="final-setup">...e em qualquer idioma que exista:</p>
+          <h4 class="final-love-line">eu te amaria de qualquer maneira.</h4>
           <div class="final-heart">♥</div>
-          <div class="credit-spacer end"></div>
+          <p class="the-end">THE END</p>
         </div>
+        <div class="credits-spacer credits-end-spacer"></div>
       </div>
 
-      <div class="music-status" id="music-status">♫ Don't Stop ’Til You Get Enough</div>
-      <button class="replay-btn" id="replay">REVER ♡</button>
-    </section>
-
-    <!-- 11 — PÓS-CRÉDITOS -->
-    <section class="screen post-credit" id="screen-post">
-      <div class="center-content">
-        <p class="post-kicker">PÓS-CRÉDITOS</p>
-        <h2>Você achou<br>que tinha acabado?</h2>
-        <p class="post-text">Era só isso mesmo. KKKKKK<br><span>Eu te amo. ❤️</span></p>
-        <p class="post-small">Agora pode ir viver o resto da história comigo.</p>
-        <button class="primary-btn" id="post-replay">VOLTAR AO COMEÇO ↺</button>
+      <div class="credit-footer">
+        <div class="now-playing"><span class="playing-dot"></span><span>dont-stop-til-you-get-enough.mp3</span></div>
+        <button id="replaySite" class="replay-btn">↻ RECOMEÇAR</button>
       </div>
+      <div class="page-number">08 / 08</div>
     </section>
   </main>
 
-  <audio id="bg-music" preload="auto">
-    <source src="assets/dont-stop-til-you-get-enough.mp3" type="audio/mpeg">
+  <!-- IMPORTANTE: o arquivo da música fica na raiz do repositório, não em assets. -->
+  <audio id="bgMusic" preload="auto">
+    <source src="dont-stop-til-you-get-enough.mp3" type="audio/mpeg" />
   </audio>
 
   <script src="script.js"></script>
