@@ -1,293 +1,129 @@
-const screens = [...document.querySelectorAll('.screen')];
-const answerForm = document.getElementById('answerForm');
-const answerInput = document.getElementById('answerInput');
-const answerFeedback = document.getElementById('answerFeedback');
-const checkTitle = document.getElementById('checkTitle');
-const checkText = document.getElementById('checkText');
-const checkMark = document.getElementById('checkMark');
-const checkContinue = document.getElementById('checkContinue');
-const openLetter = document.getElementById('openLetter');
-const closeLetter = document.getElementById('closeLetter');
-const closeLetterTop = document.getElementById('closeLetterTop');
-const letterBackdrop = document.getElementById('letterBackdrop');
-const letterModal = document.getElementById('letterModal');
-const letterContinue = document.getElementById('letterContinue');
-const giftBox = document.getElementById('giftBox');
-const giftButton = document.getElementById('giftButton');
-const startCredits = document.getElementById('startCredits');
-const finalSuspense = document.getElementById('finalSuspense');
-const fimScreen = document.getElementById('fimScreen');
-const creditsScreen = document.querySelector('[data-screen="credits"]');
-const bgMusic = document.getElementById('bgMusic');
-const replaySite = document.getElementById('replaySite');
-const fallingLetters = document.getElementById('fallingLetters');
-const particleField = document.getElementById('particleField');
-const languages = document.getElementById('languages');
+(() => {
+  'use strict';
 
-let currentScreen = 'intro';
-let letterWasOpened = false;
-let giftWasOpened = false;
-let finalTimer = null;
+  const screens = [...document.querySelectorAll('.screen')];
+  const byId = id => document.getElementById(id);
+  const answerForm = byId('answerForm'), answerInput = byId('answerInput'), feedbackEl = byId('answerFeedback');
+  const letterModal = byId('letterModal'), openLetter = byId('openLetter'), closeLetter = byId('closeLetter'), closeLetterTop = byId('closeLetterTop'), letterBackdrop = byId('letterBackdrop'), letterContinue = byId('letterContinue');
+  const gift = byId('giftBox'), giftButton = byId('giftButton');
+  const startFinal = byId('startFinal'), suspense = byId('suspense'), fim = byId('fim');
+  const music = byId('bgMusic'), playMusic = byId('playMusic'), replay = byId('replay');
+  const creditsContent = byId('creditsContent'), creditsRoll = byId('creditsRoll');
+  let screenName = 'intro', letterRead = false, finalTimers = [], musicReady = false;
 
-const LOVE_LANGUAGES = [
-  ['Português', 'Eu te amo'], ['Inglês', 'I love you'], ['Espanhol', 'Te amo'], ['Francês', "Je t’aime"],
-  ['Italiano', 'Ti amo'], ['Alemão', 'Ich liebe dich'], ['Holandês', 'Ik hou van je'], ['Sueco', 'Jag älskar dig'],
-  ['Norueguês', 'Jeg elsker deg'], ['Dinamarquês', 'Jeg elsker dig'], ['Finlandês', 'Rakastan sinua'], ['Islandês', 'Ég elska þig'],
-  ['Russo', 'Я тебя люблю'], ['Ucraniano', 'Я тебе кохаю'], ['Polonês', 'Kocham cię'], ['Tcheco', 'Miluji tě'],
-  ['Eslovaco', 'Ľúbim ťa'], ['Húngaro', 'Szeretlek'], ['Romeno', 'Te iubesc'], ['Grego', 'Σ’ αγαπώ'],
-  ['Turco', 'Seni seviyorum'], ['Árabe', 'أحبك'], ['Hebraico', 'אני אוהב אותך'], ['Persa', 'دوستت دارم'],
-  ['Hindi', 'मैं तुमसे प्यार करता हूँ'], ['Bengali', 'আমি তোমাকে ভালোবাসি'], ['Chinês', '我爱你'], ['Japonês', '愛してる'],
-  ['Coreano', '사랑해'], ['Vietnamita', 'Anh yêu em'], ['Tailandês', 'ฉันรักคุณ'], ['Indonésio', 'Aku cinta kamu'],
-  ['Filipino', 'Mahal kita'], ['Esperanto', 'Mi amas vin'], ['Latim', 'Te amo']
-];
+  const languages = [
+    ['Português','Eu te amo'],['Inglês','I love you'],['Espanhol','Te amo'],['Francês','Je t’aime'],['Italiano','Ti amo'],['Alemão','Ich liebe dich'],['Holandês','Ik hou van je'],['Sueco','Jag älskar dig'],['Norueguês','Jeg elsker deg'],['Dinamarquês','Jeg elsker dig'],['Finlandês','Rakastan sinua'],['Islandês','Ég elska þig'],['Russo','Я тебя люблю'],['Ucraniano','Я тебе кохаю'],['Polonês','Kocham cię'],['Tcheco','Miluji tě'],['Eslovaco','Ľúbim ťa'],['Húngaro','Szeretlek'],['Romeno','Te iubesc'],['Grego','Σ’ αγαπώ'],['Turco','Seni seviyorum'],['Árabe','أحبك'],['Hebraico','אני אוהב אותך'],['Persa','دوستت دارم'],['Hindi','मैं तुमसे प्यार करता हूँ'],['Bengali','আমি তোমাকে ভালোবাসি'],['Chinês','我爱你'],['Japonês','愛してる'],['Coreano','사랑해'],['Vietnamita','Anh yêu em'],['Tailandês','ฉันรักคุณ'],['Indonésio','Aku cinta kamu'],['Filipino','Mahal kita'],['Esperanto','Mi amas vin'],['Latim','Te amo']
+  ];
 
-function showScreen(name){
-  currentScreen = name;
-  screens.forEach(screen => screen.classList.toggle('active', screen.dataset.screen === name));
-  if(name !== 'credits') document.body.classList.remove('letter-open-lock');
-  window.scrollTo(0, 0);
-}
-
-function flashFeedback(text, type = 'error'){
-  answerFeedback.textContent = text;
-  answerFeedback.className = `answer-feedback show ${type === 'error' ? 'shake' : ''}`;
-  if(type === 'error') setTimeout(() => answerFeedback.classList.remove('shake'), 500);
-}
-
-function normalize(value){
-  return value.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
-answerForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  const value = normalize(answerInput.value);
-
-  if(value === 'ketelin azevedo'){
-    flashFeedback('Resposta desbloqueada. ♥', 'success');
-    answerInput.blur();
-    setTimeout(() => {
-      checkTitle.textContent = 'RESPOSTA CORRETA!';
-      checkText.textContent = 'Você realmente me conhece... ♥';
-      checkMark.textContent = '✓';
-      showScreen('check');
-    }, 620);
-    return;
+  function show(name) {
+    screenName = name;
+    screens.forEach(s => s.classList.toggle('is-active', s.dataset.screen === name));
+    if(name !== 'credits') window.scrollTo(0,0);
   }
 
-  if(value === 'ketelin'){
-    flashFeedback('“Ketelin”... especifique qual. 👀');
-  }else if(value.includes('ketelin') && value.includes('morena')){
-    flashFeedback('TA DOIDAAAAAAAAAA. CAI FORA. 🚨');
-  }else{
-    flashFeedback('ERRADÍSSIMO. ❌ Tente novamente.');
+  function normalize(v) { return v.trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+  function setFeedback(text, good=false) {
+    feedbackEl.textContent = text; feedbackEl.className = 'feedback' + (good ? ' success' : ' shake');
+    if(!good) setTimeout(() => feedbackEl.classList.remove('shake'), 500);
   }
-  answerInput.select();
-});
+  function clearTimers(){ finalTimers.forEach(clearTimeout); finalTimers=[]; }
 
-checkContinue.addEventListener('click', () => showScreen('letter'));
-
-function openLetterModal(){
-  letterModal.classList.add('open');
-  letterModal.setAttribute('aria-hidden','false');
-  document.body.classList.add('letter-open-lock');
-  letterWasOpened = true;
-  openLetter.classList.add('hidden');
-  letterContinue.classList.remove('hidden');
-  setTimeout(() => closeLetter.focus(), 100);
-}
-function closeLetterModal(){
-  letterModal.classList.remove('open');
-  letterModal.setAttribute('aria-hidden','true');
-  document.body.classList.remove('letter-open-lock');
-  if(letterWasOpened) letterContinue.classList.remove('hidden');
-  openLetter.classList.toggle('hidden', letterWasOpened);
-}
-openLetter.addEventListener('click', openLetterModal);
-closeLetter.addEventListener('click', closeLetterModal);
-closeLetterTop.addEventListener('click', closeLetterModal);
-letterBackdrop.addEventListener('click', closeLetterModal);
-document.addEventListener('keydown', (event) => {
-  if(event.key === 'Escape' && letterModal.classList.contains('open')) closeLetterModal();
-});
-letterContinue.addEventListener('click', () => { closeLetterModal(); showScreen('photos'); });
-
-document.querySelectorAll('[data-next]').forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.next)));
-
-function openGift(){
-  giftWasOpened = true;
-  giftBox.classList.add('opened');
-  giftButton.textContent = 'SURPRESA ABERTA ♥';
-  giftButton.disabled = true;
-  setTimeout(() => showScreen('surprise-open'), 650);
-}
-giftBox.addEventListener('click', openGift);
-giftButton.addEventListener('click', openGift);
-
-let audioStarted = false;
-let audioFallbackButton = null;
-
-function ensureAudioReady(){
-  // O MP3 fica na raiz do GitHub Pages. O caminho relativo funciona mesmo quando
-  // o site está publicado em /nome-do-repositorio/.
-  if(!bgMusic.src || !bgMusic.src.includes('dont-stop-til-get-enough.mp3')){
-    bgMusic.src = './dont-stop-til-get-enough.mp3';
-  }
-  bgMusic.preload = 'auto';
-  bgMusic.loop = false;
-  bgMusic.muted = false;
-  bgMusic.volume = 0;
-  bgMusic.load();
-}
-
-function createAudioFallback(){
-  if(audioFallbackButton) return;
-  audioFallbackButton = document.createElement('button');
-  audioFallbackButton.type = 'button';
-  audioFallbackButton.className = 'audio-fallback-btn';
-  audioFallbackButton.textContent = 'TOCAR A MÚSICA ♥';
-  audioFallbackButton.addEventListener('click', async () => {
-    try{
-      await bgMusic.play();
-      audioStarted = true;
-      audioFallbackButton.remove();
-      audioFallbackButton = null;
-      fadeAudioIn();
-    }catch(err){
-      audioFallbackButton.textContent = 'CLIQUE NOVAMENTE PARA TOCAR';
-    }
+  answerForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const v = normalize(answerInput.value);
+    if(v === 'ketelin azevedo'){
+      setFeedback('Resposta desbloqueada. ♥', true);
+      setTimeout(() => show('check'), 420);
+    } else if(v === 'ketelin') setFeedback('“Ketelin”... especifique qual. 👀');
+    else if(v.includes('ketelin') && v.includes('morena')) setFeedback('TA DOIDAAAAAAAAAA. CAI FORA. 😂');
+    else setFeedback('ERRADÍSSIMO. ♥ Tenta de novo.');
   });
-  finalSuspense.appendChild(audioFallbackButton);
-}
 
-function fadeAudioIn(){
-  clearInterval(window.__musicFade);
-  let volume = 0;
-  bgMusic.volume = 0;
-  window.__musicFade = setInterval(() => {
-    volume = Math.min(0.72, volume + 0.045);
-    bgMusic.volume = volume;
-    if(volume >= 0.72) clearInterval(window.__musicFade);
-  }, 100);
-}
+  byId('checkContinue').addEventListener('click', () => show('letter'));
 
-async function startMusicFromUserGesture(){
-  ensureAudioReady();
-  try{
-    // Tenta iniciar imediatamente, ainda dentro do gesto de clique.
-    await bgMusic.play();
-    audioStarted = true;
-    if(audioFallbackButton){ audioFallbackButton.remove(); audioFallbackButton = null; }
-    fadeAudioIn();
-    return true;
-  }catch(err){
-    createAudioFallback();
-    return false;
+  function openLetterModal(){
+    letterModal.classList.add('open'); letterModal.setAttribute('aria-hidden','false'); letterRead=true;
+    openLetter.classList.add('hidden'); letterContinue.classList.remove('hidden');
   }
-}
+  function closeLetterModal(){ letterModal.classList.remove('open'); letterModal.setAttribute('aria-hidden','true'); }
+  openLetter.addEventListener('click', openLetterModal); closeLetter.addEventListener('click', closeLetterModal); closeLetterTop.addEventListener('click', closeLetterModal); letterBackdrop.addEventListener('click', closeLetterModal);
+  document.addEventListener('keydown', e => { if(e.key==='Escape' && letterModal.classList.contains('open')) closeLetterModal(); });
+  letterContinue.addEventListener('click', () => { closeLetterModal(); show('photos'); });
+  document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => show(b.dataset.next)));
 
-startCredits.addEventListener('click', async () => {
-  showScreen('finale');
-  finalSuspense.classList.remove('fade-out');
-  fimScreen.classList.remove('show');
-  clearTimeout(finalTimer);
+  function openGift(){ gift.classList.add('opened'); giftButton.disabled=true; giftButton.textContent='ABERTA ♥'; setTimeout(()=>show('surprise-open'),650); }
+  gift.addEventListener('click', openGift); giftButton.addEventListener('click', openGift);
 
-  await startMusicFromUserGesture();
-
-  finalTimer = setTimeout(() => {
-    finalSuspense.style.opacity = '0';
-    setTimeout(() => {
-      fimScreen.classList.add('show');
-      finalTimer = setTimeout(() => startCreditsRoll(), 2600);
-    }, 1400);
-  }, 3600);
-});
-
-function startCreditsRoll(){
-  showScreen('credits');
-  const roll = document.getElementById('creditsRoll');
-  const content = document.querySelector('.credits-content');
-  if(!roll || !content) return;
-
-  // Mede o conteúdo real: assim TODOS os idiomas entram na rolagem,
-  // independentemente do tamanho da tela.
-  const distance = Math.ceil(content.getBoundingClientRect().height + window.innerHeight * 1.25);
-  roll.style.setProperty('--credits-distance', `${distance}px`);
-  const duration = Math.max(44, Math.min(82, distance / 42));
-  roll.style.setProperty('--credits-duration', `${duration}s`);
-  creditsScreen.classList.remove('playing');
-  void creditsScreen.offsetWidth;
-  requestAnimationFrame(() => creditsScreen.classList.add('playing'));
-}
-
-replaySite.addEventListener('click', () => {
-  clearTimeout(finalTimer);
-  bgMusic.pause();
-  bgMusic.currentTime = 0;
-  clearInterval(window.__musicFade);
-  bgMusic.volume = 0;
-  bgMusic.muted = false;
-  creditsScreen.classList.remove('playing');
-  finalSuspense.style.opacity = '';
-  fimScreen.classList.remove('show');
-  letterWasOpened = false;
-  giftWasOpened = false;
-  openLetter.classList.remove('hidden');
-  letterContinue.classList.add('hidden');
-  giftButton.disabled = false;
-  giftButton.textContent = 'ABRIR? 👀';
-  giftBox.classList.remove('opened');
-  answerInput.value = '';
-  answerFeedback.className = 'answer-feedback';
-  showScreen('intro');
-});
-
-// Letras caindo na abertura.
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVXYWZ♥♡✦✧';
-for(let i=0;i<42;i++){
-  const span = document.createElement('span');
-  span.textContent = alphabet[Math.floor(Math.random() * alphabet.length)];
-  span.style.left = `${Math.random()*100}%`;
-  span.style.setProperty('--dur', `${7 + Math.random()*8}s`);
-  span.style.setProperty('--delay', `${-Math.random()*9}s`);
-  span.style.setProperty('--r', `${-35 + Math.random()*70}deg`);
-  span.style.opacity = (0.18 + Math.random()*.55).toFixed(2);
-  fallingLetters.appendChild(span);
-}
-
-// Pequenos corações/pontinhos flutuantes.
-for(let i=0;i<24;i++){
-  const p = document.createElement('span');
-  p.className = 'particle';
-  p.textContent = Math.random() > .65 ? '♥' : '✦';
-  p.style.left = `${Math.random()*100}%`;
-  p.style.bottom = `${-10 - Math.random()*50}px`;
-  p.style.setProperty('--dx', `${-80 + Math.random()*160}px`);
-  p.style.animationDuration = `${12 + Math.random()*16}s`;
-  p.style.animationDelay = `${-Math.random()*15}s`;
-  particleField.appendChild(p);
-}
-
-LOVE_LANGUAGES.forEach(([language, phrase]) => {
-  const row = document.createElement('div');
-  row.className = 'language-line';
-  const label = document.createElement('span');
-  label.textContent = language;
-  row.appendChild(label);
-  row.appendChild(document.createTextNode(phrase));
-  languages.appendChild(row);
-});
-
-// Clique no fundo da experiência também pode reativar o áudio caso o browser tenha bloqueado a primeira tentativa.
-document.addEventListener('pointerdown', () => {
-  if((currentScreen === 'credits' || currentScreen === 'finale') && bgMusic.paused){
-    bgMusic.play().then(() => { audioStarted = true; fadeAudioIn(); if(audioFallbackButton){audioFallbackButton.remove();audioFallbackButton=null;} }).catch(()=>{});
+  function musicPathOk(){ return music.getAttribute('src') === './dont-stop-til-you-get-enough.mp3' || music.src.endsWith('/dont-stop-til-you-get-enough.mp3'); }
+  async function startMusic(){
+    if(!musicPathOk()) music.src='./dont-stop-til-you-get-enough.mp3';
+    music.volume=.76;
+    music.loop=false;
+    try{ await music.play(); musicReady=true; playMusic.classList.add('hidden'); return true; }
+    catch(err){ playMusic.classList.remove('hidden'); return false; }
   }
-}, {passive:true});
+  playMusic.addEventListener('click', async () => { const ok=await startMusic(); if(ok) playMusic.classList.add('hidden'); });
+  music.addEventListener('error',()=>playMusic.classList.remove('hidden'));
 
-window.addEventListener('resize', () => {
-  if(currentScreen === 'credits') startCreditsRoll();
-});
+  function buildCredits(){
+    creditsContent.innerHTML = '';
+    const add = (tag, cls, text) => { const el=document.createElement(tag); if(cls) el.className=cls; el.textContent=text; creditsContent.appendChild(el); return el; };
+    add('p','smallcaps','UMA PRODUÇÃO PARTICULAR');
+    add('h2','big','A LOVE STORY');
+    add('p','starring','starring');
+    add('p','big','HANIEL & KETELIN');
+    add('p','starring','written, designed and assembled with a lot of love by Haniel');
+    add('p','starring','Special thanks to Ketelin — por ser exatamente quem você é. ♥');
+    add('h3','', 'E agora... em vários idiomas:');
+    const list=document.createElement('div'); list.className='language-list';
+    languages.forEach(([lang,phrase])=>{ const row=document.createElement('div'); row.className='language-line'; const small=document.createElement('small'); small.textContent=lang; row.appendChild(small); row.appendChild(document.createTextNode(phrase)); list.appendChild(row); });
+    creditsContent.appendChild(list);
+    add('p','final-message','eu te amaria de qualquer maneira.');
+    add('div','the-end','FIM');
+  }
+  buildCredits();
 
-bgMusic.addEventListener('error', () => {
-  if(currentScreen === 'finale' || currentScreen === 'credits') createAudioFallback();
-});
+  async function launchFinal(){
+    clearTimers(); show('finale'); suspense.style.opacity='1'; fim.classList.remove('show'); playMusic.classList.add('hidden');
+    await startMusic();
+    finalTimers.push(setTimeout(()=>{
+      suspense.style.opacity='0';
+      finalTimers.push(setTimeout(()=>{
+        fim.classList.add('show');
+        finalTimers.push(setTimeout(()=>startCredits(),2600));
+      },1200));
+    },4300));
+  }
+  function startCredits(){
+    show('credits');
+    requestAnimationFrame(() => {
+      const viewport = document.querySelector('.credits-viewport').clientHeight;
+      const contentHeight = creditsContent.scrollHeight;
+      const start = viewport * .9;
+      const end = contentHeight + viewport * .9;
+      const distance = start + end;
+      creditsRoll.style.transition='none';
+      creditsRoll.style.transform=`translateY(${start}px)`;
+      const duration=Math.max(50, distance/34);
+      requestAnimationFrame(()=>{
+        creditsRoll.style.transition=`transform ${duration}s linear`;
+        creditsRoll.style.transform=`translateY(-${end}px)`;
+      });
+    });
+  }
+  startFinal.addEventListener('click', launchFinal);
+
+  replay.addEventListener('click',()=>{
+    clearTimers(); music.pause(); music.currentTime=0; musicReady=false;
+    letterRead=false; openLetter.classList.remove('hidden'); letterContinue.classList.add('hidden'); closeLetterModal();
+    gift.classList.remove('opened'); giftButton.disabled=false; giftButton.textContent='ABRIR? 👀';
+    answerInput.value=''; feedbackEl.textContent=''; feedbackEl.className='feedback'; suspense.style.opacity='1'; fim.classList.remove('show'); playMusic.classList.add('hidden');
+    creditsRoll.style.transition='none'; creditsRoll.style.transform='translateY(0)'; show('intro');
+  });
+
+  // Corações/pétalas leves: decorativos e suaves.
+  const petals=byId('petals');
+  for(let i=0;i<18;i++){
+    const p=document.createElement('span'); p.className='petal'; p.textContent=i%4===0?'♥':'✦'; p.style.left=`${Math.random()*100}%`; p.style.fontSize=`${8+Math.random()*12}px`; p.style.setProperty('--drift',`${-70+Math.random()*140}px`); p.style.animationDuration=`${12+Math.random()*12}s`; p.style.animationDelay=`${-Math.random()*16}s`; petals.appendChild(p);
+  }
+})();
