@@ -123,26 +123,75 @@ function openGift(){
 giftBox.addEventListener('click', openGift);
 giftButton.addEventListener('click', openGift);
 
-startCredits.addEventListener('click', () => {
+let audioStarted = false;
+let audioFallbackButton = null;
+
+function ensureAudioReady(){
+  // O MP3 fica na raiz do GitHub Pages. O caminho relativo funciona mesmo quando
+  // o site está publicado em /nome-do-repositorio/.
+  if(!bgMusic.src || !bgMusic.src.includes('dont-stop-til-get-enough.mp3')){
+    bgMusic.src = './dont-stop-til-get-enough.mp3';
+  }
+  bgMusic.preload = 'auto';
+  bgMusic.loop = false;
+  bgMusic.muted = false;
+  bgMusic.volume = 0;
+  bgMusic.load();
+}
+
+function createAudioFallback(){
+  if(audioFallbackButton) return;
+  audioFallbackButton = document.createElement('button');
+  audioFallbackButton.type = 'button';
+  audioFallbackButton.className = 'audio-fallback-btn';
+  audioFallbackButton.textContent = 'TOCAR A MÚSICA ♥';
+  audioFallbackButton.addEventListener('click', async () => {
+    try{
+      await bgMusic.play();
+      audioStarted = true;
+      audioFallbackButton.remove();
+      audioFallbackButton = null;
+      fadeAudioIn();
+    }catch(err){
+      audioFallbackButton.textContent = 'CLIQUE NOVAMENTE PARA TOCAR';
+    }
+  });
+  finalSuspense.appendChild(audioFallbackButton);
+}
+
+function fadeAudioIn(){
+  clearInterval(window.__musicFade);
+  let volume = 0;
+  bgMusic.volume = 0;
+  window.__musicFade = setInterval(() => {
+    volume = Math.min(0.72, volume + 0.045);
+    bgMusic.volume = volume;
+    if(volume >= 0.72) clearInterval(window.__musicFade);
+  }, 100);
+}
+
+async function startMusicFromUserGesture(){
+  ensureAudioReady();
+  try{
+    // Tenta iniciar imediatamente, ainda dentro do gesto de clique.
+    await bgMusic.play();
+    audioStarted = true;
+    if(audioFallbackButton){ audioFallbackButton.remove(); audioFallbackButton = null; }
+    fadeAudioIn();
+    return true;
+  }catch(err){
+    createAudioFallback();
+    return false;
+  }
+}
+
+startCredits.addEventListener('click', async () => {
   showScreen('finale');
   finalSuspense.classList.remove('fade-out');
   fimScreen.classList.remove('show');
   clearTimeout(finalTimer);
 
-  // O navegador geralmente libera o áudio porque esta sequência começou por uma interação do usuário.
-  bgMusic.currentTime = 0;
-  bgMusic.volume = 0;
-  bgMusic.play().then(() => {
-    let volume = 0;
-    const fade = setInterval(() => {
-      volume = Math.min(1, volume + .08);
-      bgMusic.volume = volume;
-      if(volume >= 1) clearInterval(fade);
-    }, 100);
-  }).catch(() => {
-    // Se o navegador bloquear autoplay, o arquivo continua sendo encontrado na raiz;
-    // a tentativa é refeita no próximo gesto do usuário.
-  });
+  await startMusicFromUserGesture();
 
   finalTimer = setTimeout(() => {
     finalSuspense.style.opacity = '0';
@@ -155,7 +204,18 @@ startCredits.addEventListener('click', () => {
 
 function startCreditsRoll(){
   showScreen('credits');
+  const roll = document.getElementById('creditsRoll');
+  const content = document.querySelector('.credits-content');
+  if(!roll || !content) return;
+
+  // Mede o conteúdo real: assim TODOS os idiomas entram na rolagem,
+  // independentemente do tamanho da tela.
+  const distance = Math.ceil(content.getBoundingClientRect().height + window.innerHeight * 1.25);
+  roll.style.setProperty('--credits-distance', `${distance}px`);
+  const duration = Math.max(44, Math.min(82, distance / 42));
+  roll.style.setProperty('--credits-duration', `${duration}s`);
   creditsScreen.classList.remove('playing');
+  void creditsScreen.offsetWidth;
   requestAnimationFrame(() => creditsScreen.classList.add('playing'));
 }
 
@@ -163,7 +223,9 @@ replaySite.addEventListener('click', () => {
   clearTimeout(finalTimer);
   bgMusic.pause();
   bgMusic.currentTime = 0;
-  bgMusic.volume = 1;
+  clearInterval(window.__musicFade);
+  bgMusic.volume = 0;
+  bgMusic.muted = false;
   creditsScreen.classList.remove('playing');
   finalSuspense.style.opacity = '';
   fimScreen.classList.remove('show');
@@ -208,13 +270,24 @@ for(let i=0;i<24;i++){
 LOVE_LANGUAGES.forEach(([language, phrase]) => {
   const row = document.createElement('div');
   row.className = 'language-line';
-  row.innerHTML = `<span>${language}</span>${phrase}`;
+  const label = document.createElement('span');
+  label.textContent = language;
+  row.appendChild(label);
+  row.appendChild(document.createTextNode(phrase));
   languages.appendChild(row);
 });
 
 // Clique no fundo da experiência também pode reativar o áudio caso o browser tenha bloqueado a primeira tentativa.
 document.addEventListener('pointerdown', () => {
-  if(currentScreen === 'credits' && bgMusic.paused){
-    bgMusic.play().catch(()=>{});
+  if((currentScreen === 'credits' || currentScreen === 'finale') && bgMusic.paused){
+    bgMusic.play().then(() => { audioStarted = true; fadeAudioIn(); if(audioFallbackButton){audioFallbackButton.remove();audioFallbackButton=null;} }).catch(()=>{});
   }
 }, {passive:true});
+
+window.addEventListener('resize', () => {
+  if(currentScreen === 'credits') startCreditsRoll();
+});
+
+bgMusic.addEventListener('error', () => {
+  if(currentScreen === 'finale' || currentScreen === 'credits') createAudioFallback();
+});
